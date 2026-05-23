@@ -1,42 +1,53 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
-
 export async function POST(request: Request) {
   try {
-    const { cart } = await request.json();
+    const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
-    const lineItems = cart.map((item: any) => {
-      const priceNumber = Number(item.price.replace("$", ""));
+    if (!stripeSecretKey) {
+      throw new Error("Missing Stripe Secret Key");
+    }
 
-      return {
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: item.model,
-            images: [`${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}${item.image}`],
-          },
-          unit_amount: Math.round(priceNumber * 100),
-        },
-        quantity: item.quantity,
-      };
+    const stripe = new Stripe(stripeSecretKey, {
+      apiVersion: "2025-04-30.basil",
     });
+
+    const body = await request.json();
+    const cart = body.cart;
+
+    const line_items = cart.map((item: any) => ({
+      price_data: {
+        currency: "usd",
+        product_data: {
+          name: item.model,
+          images: [
+            `${process.env.NEXT_PUBLIC_SITE_URL}${item.image}`,
+          ],
+        },
+        unit_amount: Math.round(
+          Number(item.price.replace("$", "")) * 100
+        ),
+      },
+      quantity: item.quantity,
+    }));
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       mode: "payment",
-      line_items: lineItems,
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/cancel`,
+      line_items,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cancel`,
     });
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({
+      url: session.url,
+    });
   } catch (error) {
-    console.error("Stripe checkout error:", error);
+    console.error("Stripe Error:", error);
 
     return NextResponse.json(
-      { error: "Something went wrong creating checkout." },
+      { error: "Checkout failed." },
       { status: 500 }
     );
   }
