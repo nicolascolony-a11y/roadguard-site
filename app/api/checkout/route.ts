@@ -17,23 +17,22 @@ export async function POST(request: Request) {
 
     const { cart } = await request.json();
 
-    const line_items = cart.map((item: any) => {
-      const priceNumber = Number(item.price.replace("$", ""));
-
-      return {
-        price_data: {
-          currency: "usd",
-          product_data: {
-            name: item.model,
-          },
-          unit_amount: Math.round(priceNumber * 100),
+    const line_items = cart.map((item: any) => ({
+      price_data: {
+        currency: "usd",
+        product_data: {
+          name: item.model,
         },
-        quantity: item.quantity,
-      };
-    });
+        unit_amount: Math.round(
+          Number(item.price.replace("$", "")) * 100
+        ),
+      },
+      quantity: item.quantity,
+    }));
 
     const siteUrl =
-      process.env.NEXT_PUBLIC_SITE_URL || "https://roadguard-site.vercel.app";
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      "https://roadguard-site.vercel.app";
 
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
@@ -43,7 +42,9 @@ export async function POST(request: Request) {
       cancel_url: `${siteUrl}/cancel`,
     });
 
-    return NextResponse.json({ url: session.url });
+    return NextResponse.json({
+      url: session.url,
+    });
   } catch (error) {
     console.error("Stripe checkout error:", error);
 
