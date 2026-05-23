@@ -92,7 +92,10 @@ export default function ProductPage() {
 
   useEffect(() => {
     const savedCart = localStorage.getItem("roadguard-cart");
-    if (savedCart) setCart(JSON.parse(savedCart));
+
+    if (savedCart) {
+      setCart(JSON.parse(savedCart));
+    }
   }, []);
 
   useEffect(() => {
@@ -101,8 +104,13 @@ export default function ProductPage() {
 
   if (!product) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#050814] text-white">
-        Product not found
+      <div className="flex min-h-screen items-center justify-center bg-[#050814] px-6 text-white">
+        <div className="text-center">
+          <h1 className="text-5xl font-black">Product not found</h1>
+          <Link href="/" className="mt-6 inline-block text-blue-300">
+            ← Back to RoadGuard
+          </Link>
+        </div>
       </div>
     );
   }
@@ -149,16 +157,18 @@ export default function ProductPage() {
     });
   };
 
-  const removeFromCart = (slug: string) => {
-    setCart((currentCart) => currentCart.filter((item) => item.slug !== slug));
+  const removeFromCart = (itemSlug: string) => {
+    setCart((currentCart) =>
+      currentCart.filter((item) => item.slug !== itemSlug)
+    );
   };
 
-  const updateCartQuantity = (slug: string, newQuantity: number) => {
+  const updateCartQuantity = (itemSlug: string, newQuantity: number) => {
     if (newQuantity < 1) return;
 
     setCart((currentCart) =>
       currentCart.map((item) =>
-        item.slug === slug ? { ...item, quantity: newQuantity } : item
+        item.slug === itemSlug ? { ...item, quantity: newQuantity } : item
       )
     );
   };
@@ -247,6 +257,7 @@ export default function ProductPage() {
           <button
             onClick={() => setLightboxOpen(false)}
             className="absolute right-6 top-6 rounded-full bg-white/10 p-3 hover:bg-white/20"
+            type="button"
           >
             <X />
           </button>
@@ -254,6 +265,7 @@ export default function ProductPage() {
           <button
             onClick={previousMedia}
             className="absolute left-6 rounded-full bg-white/10 p-4 hover:bg-white/20"
+            type="button"
           >
             <ChevronLeft />
           </button>
@@ -267,6 +279,7 @@ export default function ProductPage() {
           <button
             onClick={nextMedia}
             className="absolute right-6 rounded-full bg-white/10 p-4 hover:bg-white/20"
+            type="button"
           >
             <ChevronRight />
           </button>
@@ -287,8 +300,19 @@ export default function ProductPage() {
               ← Back to shop
             </Link>
 
+            <a
+              href="sms:+17262032252"
+              className="hidden items-center gap-2 rounded-full border border-green-500/30 bg-green-500/10 px-4 py-2 text-sm font-black text-green-300 transition hover:bg-green-500 hover:text-white md:flex"
+            >
+              TEXT SUPPORT
+              <span className="text-green-100/70">+1 (726) 203-2252</span>
+            </a>
+
             <div className="group relative">
-              <button className="relative flex h-12 w-12 items-center justify-center rounded-full border border-blue-500/30 bg-white/5 transition hover:bg-blue-600">
+              <button
+                className="relative flex h-12 w-12 items-center justify-center rounded-full border border-blue-500/30 bg-white/5 transition hover:bg-blue-600"
+                type="button"
+              >
                 <ShoppingCart className="h-5 w-5" />
 
                 {cartCount > 0 && (
@@ -337,6 +361,7 @@ export default function ProductPage() {
                                   )
                                 }
                                 className="h-7 w-7 border border-blue-500/30 bg-white/5 font-black hover:bg-blue-600"
+                                type="button"
                               >
                                 -
                               </button>
@@ -353,6 +378,7 @@ export default function ProductPage() {
                                   )
                                 }
                                 className="h-7 w-7 border border-blue-500/30 bg-white/5 font-black hover:bg-blue-600"
+                                type="button"
                               >
                                 +
                               </button>
@@ -360,6 +386,7 @@ export default function ProductPage() {
                               <button
                                 onClick={() => removeFromCart(item.slug)}
                                 className="ml-auto text-blue-100/50 hover:text-red-400"
+                                type="button"
                               >
                                 <Trash2 className="h-4 w-4" />
                               </button>
@@ -431,6 +458,7 @@ export default function ProductPage() {
                   <button
                     onClick={previousMedia}
                     className="absolute left-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-[#050814]/80 hover:bg-blue-600"
+                    type="button"
                   >
                     <ChevronLeft />
                   </button>
@@ -438,6 +466,7 @@ export default function ProductPage() {
                   <button
                     onClick={nextMedia}
                     className="absolute right-4 top-1/2 flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full bg-[#050814]/80 hover:bg-blue-600"
+                    type="button"
                   >
                     <ChevronRight />
                   </button>
@@ -455,6 +484,7 @@ export default function ProductPage() {
                       ? "border-blue-300 shadow-[0_0_20px_rgba(96,165,250,0.45)]"
                       : "border-blue-500/20"
                   }`}
+                  type="button"
                 >
                   {item.endsWith(".mp4") ? (
                     <div className="flex h-24 w-24 flex-col items-center justify-center bg-black text-xs font-black text-white">
@@ -550,6 +580,7 @@ export default function ProductPage() {
               <button
                 onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 className="h-11 w-11 border border-blue-500/35 bg-[#08111f] text-xl font-black hover:bg-blue-600"
+                type="button"
               >
                 -
               </button>
@@ -561,6 +592,7 @@ export default function ProductPage() {
               <button
                 onClick={() => setQuantity(quantity + 1)}
                 className="h-11 w-11 border border-blue-500/35 bg-[#08111f] text-xl font-black hover:bg-blue-600"
+                type="button"
               >
                 +
               </button>
@@ -610,7 +642,9 @@ export default function ProductPage() {
             </div>
 
             <div className="mt-12 rounded-3xl border border-blue-500/20 bg-white/5 p-6">
-              <h3 className="text-2xl font-black">Frequently Asked Questions</h3>
+              <h3 className="text-2xl font-black">
+                Frequently Asked Questions
+              </h3>
 
               <div className="mt-6 space-y-5">
                 <div>
@@ -668,7 +702,7 @@ export default function ProductPage() {
             <div>
               <p className="font-black text-blue-300">Support</p>
               <p className="mt-2 text-sm">
-                Questions? Contact us at support@roadguard.com
+                Questions? Text us at +1 (726) 203-2252.
               </p>
             </div>
           </div>
