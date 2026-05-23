@@ -14,12 +14,14 @@ export async function POST(request: Request) {
       );
     }
 
-    const stripeModule = await import("stripe");
-    const Stripe = stripeModule.default;
-
+    const Stripe = (await import("stripe")).default;
     const stripe = new Stripe(stripeSecretKey);
 
     const { cart } = await request.json();
+
+    const cartTotal = cart.reduce((total: number, item: any) => {
+      return total + Number(item.price.replace("$", "")) * item.quantity;
+    }, 0);
 
     const line_items = cart.map((item: any) => ({
       price_data: {
@@ -39,6 +41,45 @@ export async function POST(request: Request) {
       mode: "payment",
       payment_method_types: ["card"],
       line_items,
+      allow_promotion_codes: true,
+      billing_address_collection: "auto",
+      shipping_address_collection: {
+        allowed_countries: ["US"],
+      },
+      shipping_options:
+        cartTotal >= 100
+          ? [
+              {
+                shipping_rate_data: {
+                  type: "fixed_amount",
+                  fixed_amount: {
+                    amount: 0,
+                    currency: "usd",
+                  },
+                  display_name: "Free Shipping",
+                  delivery_estimate: {
+                    minimum: { unit: "business_day", value: 3 },
+                    maximum: { unit: "business_day", value: 7 },
+                  },
+                },
+              },
+            ]
+          : [
+              {
+                shipping_rate_data: {
+                  type: "fixed_amount",
+                  fixed_amount: {
+                    amount: 599,
+                    currency: "usd",
+                  },
+                  display_name: "Standard Shipping",
+                  delivery_estimate: {
+                    minimum: { unit: "business_day", value: 3 },
+                    maximum: { unit: "business_day", value: 7 },
+                  },
+                },
+              },
+            ],
       success_url: `${siteUrl}/success`,
       cancel_url: `${siteUrl}/cancel`,
     });
@@ -47,9 +88,6 @@ export async function POST(request: Request) {
   } catch (error) {
     console.error("Stripe checkout error:", error);
 
-    return NextResponse.json(
-      { error: "Checkout failed" },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: "Checkout failed" }, { status: 500 });
   }
 }
