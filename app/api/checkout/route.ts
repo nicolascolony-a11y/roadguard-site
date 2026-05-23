@@ -1,53 +1,54 @@
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
 
 export async function POST(request: Request) {
   try {
     const stripeSecretKey = process.env.STRIPE_SECRET_KEY;
 
     if (!stripeSecretKey) {
-      throw new Error("Missing Stripe Secret Key");
+      return NextResponse.json(
+        { error: "Missing STRIPE_SECRET_KEY" },
+        { status: 500 }
+      );
     }
 
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: "2025-04-30.basil",
+    const Stripe = (await import("stripe")).default;
+
+    const stripe = new Stripe(stripeSecretKey);
+
+    const { cart } = await request.json();
+
+    const line_items = cart.map((item: any) => {
+      const priceNumber = Number(item.price.replace("$", ""));
+
+      return {
+        price_data: {
+          currency: "usd",
+          product_data: {
+            name: item.model,
+          },
+          unit_amount: Math.round(priceNumber * 100),
+        },
+        quantity: item.quantity,
+      };
     });
 
-    const body = await request.json();
-    const cart = body.cart;
-
-    const line_items = cart.map((item: any) => ({
-      price_data: {
-        currency: "usd",
-        product_data: {
-          name: item.model,
-          images: [
-            `${process.env.NEXT_PUBLIC_SITE_URL}${item.image}`,
-          ],
-        },
-        unit_amount: Math.round(
-          Number(item.price.replace("$", "")) * 100
-        ),
-      },
-      quantity: item.quantity,
-    }));
+    const siteUrl =
+      process.env.NEXT_PUBLIC_SITE_URL || "https://roadguard-site.vercel.app";
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"],
       mode: "payment",
+      payment_method_types: ["card"],
       line_items,
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/success`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/cancel`,
+      success_url: `${siteUrl}/success`,
+      cancel_url: `${siteUrl}/cancel`,
     });
 
-    return NextResponse.json({
-      url: session.url,
-    });
+    return NextResponse.json({ url: session.url });
   } catch (error) {
-    console.error("Stripe Error:", error);
+    console.error("Stripe checkout error:", error);
 
     return NextResponse.json(
-      { error: "Checkout failed." },
+      { error: "Checkout failed" },
       { status: 500 }
     );
   }
