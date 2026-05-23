@@ -247,12 +247,23 @@ export default function DashcamLandingPage() {
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6">
           <div className="flex items-center gap-8">
-            <a href="#top" className="group">
-              <p className="text-2xl font-black tracking-tight text-white transition group-hover:text-blue-200">
-                {brand.name}
-              </p>
-              <p className="text-xs text-blue-200/60">{brand.tagline}</p>
-            </a>
+            <a href="#top" className="group flex items-center gap-3">
+  <img
+    src="/roadguard-logo.png"
+    alt="RoadGuard"
+    className="h-10 w-auto"
+  />
+
+  <div>
+    <p className="text-2xl font-black tracking-tight text-white transition group-hover:text-blue-200">
+      RoadGuard
+    </p>
+
+    <p className="text-xs text-blue-200/60">
+      Premium dash cams for everyday drivers
+    </p>
+  </div>
+</a>
 
             <nav className="hidden items-center gap-6 text-sm font-semibold text-blue-100/70 md:flex">
               <a href="#products" className="transition hover:text-white">
